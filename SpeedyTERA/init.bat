@@ -1,0 +1,1 @@
+rundll32 debug\speedytera.dll,dummy

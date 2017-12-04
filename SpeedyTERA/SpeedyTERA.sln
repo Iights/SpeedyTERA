@@ -5,6 +5,11 @@ VisualStudioVersion = 15.0.27004.2010
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SpeedyTERA", "SpeedyTERA\SpeedyTERA.vcxproj", "{3C60281B-0750-4E79-B70A-E55FFD76AD72}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{E363E4D5-327E-43E0-AF49-7674ACCF4822}"
+	ProjectSection(SolutionItems) = preProject
+		init.bat = init.bat
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
