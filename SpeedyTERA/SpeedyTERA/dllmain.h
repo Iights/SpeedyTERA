@@ -31,6 +31,31 @@ TERA.exe+1561045 - 85 C0                 - test eax,eax
 01961382 - E8 A9FCFFFF - CALL 01961030
 01961BD1 - E8 5AF4FFFF - CALL 01961030
 
+----------
+
+speedytera.dll+116B0 - 55                    - push ebp
+speedytera.dll+116B1 - 8B EC                 - mov ebp,esp
+speedytera.dll+116B3 - 81 EC C0000000        - sub esp,000000C0 { 192 }
+speedytera.dll+116B9 - 53                    - push ebx
+speedytera.dll+116BA - 56                    - push esi
+speedytera.dll+116BB - 57                    - push edi
+speedytera.dll+116BC - 8D BD 40FFFFFF        - lea edi,[ebp-000000C0]
+speedytera.dll+116C2 - B9 30000000           - mov ecx,00000030 { 48 }
+speedytera.dll+116C7 - B8 CCCCCCCC           - mov eax,CCCCCCCC { -858993460 }
+speedytera.dll+116CC - F3 AB                 - repe stosd
+speedytera.dll+116CE - 8B F4                 - mov esi,esp
+
+
+speedytera.dll+116E8 - 8B F4                 - mov esi,esp
+speedytera.dll+116EA - 8B 45 0C              - mov eax,[ebp+0C]
+speedytera.dll+116ED - 50                    - push eax
+speedytera.dll+116EE - 8B 4D 08              - mov ecx,[ebp+08]
+speedytera.dll+116F1 - 51                    - push ecx
+speedytera.dll+116F2 - FF 15 3891B764        - call dword ptr [speedytera.dll+19138] { ->TERA.exe+15626B0 }
+speedytera.dll+116F8 - 83 C4 08              - add esp,08 { 8 }
+speedytera.dll+116FB - 3B F4                 - cmp esi,esp
+
+
 */
 
 #define ADDR_ENCRYPT_FN1 (DWORD)0x015626B0

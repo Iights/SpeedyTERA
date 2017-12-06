@@ -73,11 +73,12 @@ BOOL injectDLL(char *szDLL) {
 	return TRUE;
 }
 
-typedef DWORD(__cdecl * defEncrypt)(char *, int, DWORD, DWORD);
+typedef void(__cdecl * defEncrypt)(DWORD, DWORD); //(char *, int);
 defEncrypt _encrypt;
 
-DWORD __cdecl encrypt(char *buffer, int size, DWORD unk1, DWORD unk2) {
-	return _encrypt(buffer, size, unk1, unk2);
+void __cdecl encrypt(DWORD unk1, DWORD unk2) { // *buffer, int size) {
+	_encrypt(unk1, unk2);
+	//MessageBox(0, "ENCRYPT", 0, 0);
 }
 
 void initHooked(HMODULE hDLL) {
@@ -89,23 +90,21 @@ void initHooked(HMODULE hDLL) {
 	//getModule(pID, "speedytera.dll", me);
 	//DWORD STBase = (DWORD)me.modBaseAddr;
 
-	/**/
+	_encrypt = defEncrypt(TeraBase + ADDR_ENCRYPT_FN1);
 
 	DWORD lpEncryptJmp = (DWORD)&encrypt;
 	DWORD lpEncryptRel = *((DWORD *)(lpEncryptJmp + 1));
 	DWORD lpEncryptAbs = lpEncryptJmp + lpEncryptRel + 5;
 
-	_encrypt = defEncrypt(TeraBase + ADDR_ENCRYPT_FN1);
-
 	DWORD lpAbsEncrypt1_1 = lpEncryptAbs - (TeraBase + ADDR_CALL_ENCRYPT_FN1_1) - 5;
 	DWORD lpAbsEncrypt1_2 = lpEncryptAbs - (TeraBase + ADDR_CALL_ENCRYPT_FN1_2) - 5;
-	memcpy((LPVOID)(TeraBase + ADDR_CALL_ENCRYPT_FN1_1 + 1), &lpAbsEncrypt1_1, 4);
-	memcpy((LPVOID)(TeraBase + ADDR_CALL_ENCRYPT_FN1_2 + 1), &lpAbsEncrypt1_2, 4);
-
 	DWORD lpAbsEncrypt2_1 = lpEncryptAbs - (TeraBase + ADDR_CALL_ENCRYPT_FN2_1) - 5;
 	DWORD lpAbsEncrypt2_2 = lpEncryptAbs - (TeraBase + ADDR_CALL_ENCRYPT_FN2_2) - 5;
-	memcpy((LPVOID)(TeraBase + ADDR_CALL_ENCRYPT_FN2_1 + 1), &lpAbsEncrypt2_1, 4);
-	memcpy((LPVOID)(TeraBase + ADDR_CALL_ENCRYPT_FN2_2 + 1), &lpAbsEncrypt2_2, 4);
+
+	*((DWORD *)(TeraBase + ADDR_CALL_ENCRYPT_FN1_1 + 1)) = lpAbsEncrypt1_1;
+	*((DWORD *)(TeraBase + ADDR_CALL_ENCRYPT_FN1_2 + 1)) = lpAbsEncrypt1_2;
+	*((DWORD *)(TeraBase + ADDR_CALL_ENCRYPT_FN2_1 + 1)) = lpAbsEncrypt2_1;
+	*((DWORD *)(TeraBase + ADDR_CALL_ENCRYPT_FN2_2 + 1)) = lpAbsEncrypt2_2;
 
 	MessageBox(0, "HOOKED TERA.EXE", 0, 0);
 
