@@ -7,22 +7,41 @@
 char *TERA_EXE = "TERA.exe";
 extern "C" __declspec (dllexport) void __cdecl dummy(HWND hWnd, HINSTANCE hInst, LPTSTR lpCmdLine, int nCmdShow) { }
 
-DWORD getPID(char *szExe) {
-  DWORD pID = 0;
-  HANDLE hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+DWORD getPID(char *szName) {
+	DWORD pID = 0;
+	HANDLE hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
 
-  PROCESSENTRY32 pe = { sizeof(pe) };
-  if(Process32First(hSnapshot, &pe)) {
-    do {
-      if(_stricmp(pe.szExeFile, szExe) == 0) {
-        pID = pe.th32ProcessID;
-        break;
-      }
-    } while(Process32Next(hSnapshot, &pe));
-  }
+	PROCESSENTRY32 pe = { sizeof(pe) };
+	if (Process32First(hSnapshot, &pe)) {
+		do {
+			if (_stricmp(pe.szExeFile, szName) == 0) {
+				pID = pe.th32ProcessID;
+				break;
+			}
+		} while (Process32Next(hSnapshot, &pe));
+	}
 
-  CloseHandle(hSnapshot);
-  return pID;
+	CloseHandle(hSnapshot);
+	return pID;
+}
+
+BOOL getModule(DWORD dwPID, char *szName, MODULEENTRY32 &module) {
+	BOOL ret = false;
+	HANDLE hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE, dwPID);
+
+	MODULEENTRY32 me = { sizeof(me) };
+	if (Module32First(hSnapshot, &me)) {
+		do {
+			if (_stricmp(me.szModule, szName) == 0) {
+				ret = true;
+				module = me;
+				break;
+			}
+		} while (Module32Next(hSnapshot, &me));
+	}
+
+	CloseHandle(hSnapshot);
+	return ret;
 }
 
 BOOL injectDLL(char *szDLL) {
@@ -54,17 +73,43 @@ BOOL injectDLL(char *szDLL) {
   return TRUE;
 }
 
-int encrypt(int unk1, DWORD unk2) {
-  
-  return 4;
+typedef DWORD(__cdecl * defEncrypt)(char *, int, DWORD, DWORD);
+defEncrypt _encrypt;
+
+DWORD __cdecl encrypt(char *buffer, int size, DWORD unk1, DWORD unk2) {
+	/*char buf[255];
+	sprintf_s(buf, "%04X", unk1);
+	MessageBox(0, buf, 0, 0);
+	sprintf_s(buf, "%04X", unk2);
+	MessageBox(0, buf, 0, 0);
+	*/
+	return _encrypt(buffer, size, unk1, unk2);
 }
 
-void initHooked() {
-  MessageBox(0, "IM AT TERA.EXE", 0, 0);
-  
-  memcpy((LPVOID)ADDR_CALL_ENCRYPT_FN1_1+1, (LPVOID)&encrypt, 4);
-  
+void initHooked(HMODULE hDLL) {
+  DWORD pID = getPID(TERA_EXE);
+
+  MODULEENTRY32 me;
+  getModule(pID, TERA_EXE, me);
+  DWORD TeraBase = (DWORD)me.modBaseAddr;
+
+  /**/
+
+  DWORD lpEncrypt = (DWORD)&encrypt;
+  _encrypt = defEncrypt(TeraBase + ADDR_ENCRYPT_FN1);
+
+  DWORD lpAbsEncrypt1_1 = lpEncrypt - (TeraBase + ADDR_CALL_ENCRYPT_FN1_1) - 5;
+  DWORD lpAbsEncrypt1_2 = lpEncrypt - (TeraBase + ADDR_CALL_ENCRYPT_FN1_2) - 5;
+  memcpy((LPVOID)(TeraBase + ADDR_CALL_ENCRYPT_FN1_1 + 1), &lpAbsEncrypt1_1, 4);
+  memcpy((LPVOID)(TeraBase + ADDR_CALL_ENCRYPT_FN1_2 + 1), &lpAbsEncrypt1_2, 4);
+
+  DWORD lpAbsEncrypt2_1 = lpEncrypt - (TeraBase + ADDR_CALL_ENCRYPT_FN2_1) - 5;
+  DWORD lpAbsEncrypt2_2 = lpEncrypt - (TeraBase + ADDR_CALL_ENCRYPT_FN2_2) - 5;
+  memcpy((LPVOID)(TeraBase + ADDR_CALL_ENCRYPT_FN2_1 + 1), &lpAbsEncrypt2_1, 4);
+  memcpy((LPVOID)(TeraBase + ADDR_CALL_ENCRYPT_FN2_2 + 1), &lpAbsEncrypt2_2, 4);
+
   MessageBox(0, "HOOKED TERA.EXE", 0, 0);
+
 }
 
 void initAlone(HMODULE hDLL) {
@@ -86,7 +131,7 @@ int __stdcall DllMain(HMODULE hModule, DWORD ulReason, LPVOID lpReserved) {
       //MessageBoxA(0, szApp, "DllMain", 0);
 
       if(_stricmp(szApp, TERA_EXE) == 0) {
-        initHooked();
+        initHooked(hModule);
       }
       else {
         initAlone(hModule);
