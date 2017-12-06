@@ -73,11 +73,11 @@ BOOL injectDLL(char *szDLL) {
 	return TRUE;
 }
 
-typedef void(__cdecl * defEncrypt)(DWORD, DWORD); //(char *, int);
+typedef void(__cdecl * defEncrypt)(DWORD, DWORD);
 defEncrypt _encrypt;
 
-void __cdecl encrypt(DWORD unk1, DWORD unk2) { // *buffer, int size) {
-	_encrypt(unk1, unk2);
+void __cdecl encrypt(DWORD buffer, DWORD size) {
+	_encrypt(buffer, size);
 	//MessageBox(0, "ENCRYPT", 0, 0);
 }
 
