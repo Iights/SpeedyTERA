@@ -1,6 +1,7 @@
 #include <windows.h>
 #include <tlhelp32.h>
 #include <cstdio>
+#include <vector>
 
 #include "dllmain.h"
 
@@ -73,8 +74,15 @@ BOOL injectDLL(char *szDLL) {
   return TRUE;
 }
 
-char buf[4096] = { 0 };
-char hexBuf[50] = { 0 };
+typedef int(__stdcall * defOnBeforeEncrypt)(char *, size_t);
+std::vector<defOnBeforeEncrypt> cbOnBeforeEncrypt = {};
+
+void onBeforeEncrypt(char* buffer, size_t size) {
+  for (defOnBeforeEncrypt callback : cbOnBeforeEncrypt) {
+    callback(buffer, size);
+  }
+}
+
 DWORD returnAddress;
 __declspec(naked) void encryptHook(char* buffer, size_t size) {
   __asm {
@@ -84,17 +92,55 @@ __declspec(naked) void encryptHook(char* buffer, size_t size) {
   }
   __asm pushad
 
-  for (size_t i = 0; i < size; i++) {
-    sprintf_s(hexBuf, "%02X", (unsigned char)buffer[i]);
-    strcat_s(buf, hexBuf);
-  }
-  MessageBox(0, buf, "ENCRYPT", 0);
+  onBeforeEncrypt(buffer, size);
 
   __asm popad
   __asm jmp returnAddress
 }
 
-void initHooked(HMODULE hDLL) {
+char * PLUGIN_PATH = "C:\\Users\\Administrador\\source\\repos\\SpeedyTERA\\PluginExample\\Debug\\";
+BOOL loadPlugins() { 
+  WIN32_FIND_DATA fd = { sizeof(fd) };
+
+  HANDLE hFind;
+  char szPluginSearch[MAX_PATH] = { 0 };
+  strcpy_s(szPluginSearch, PLUGIN_PATH);
+  strcat_s(szPluginSearch, "*.dll");
+
+  if (hFind = FindFirstFile(szPluginSearch, &fd)) {
+
+    do {
+      char szDLL[MAX_PATH] = { 0 };
+      strcpy_s(szDLL, PLUGIN_PATH);
+      strcat_s(szDLL, fd.cFileName);
+
+      HMODULE hLib = LoadLibrary(szDLL);
+      if (hLib == NULL) continue;
+
+      FARPROC lpHook = GetProcAddress(hLib, "onBeforeEncrypt");
+      if (lpHook == NULL) continue;
+
+      cbOnBeforeEncrypt.push_back((defOnBeforeEncrypt)lpHook);
+
+      char buf[MAX_PATH] = "[SpeedyTera] Plugin Loaded: ";
+      strcat_s(buf, szDLL);
+      OutputDebugString(buf);
+
+    } while (FindNextFile(hFind, &fd));
+
+    FindClose(hFind);
+    return TRUE;
+  }
+
+  return FALSE;
+}
+
+HMODULE hDLL;
+void initHooked() { //HMODULE hDLL) {
+  loadPlugins();
+
+  //---
+
   DWORD pID = getPID(TERA_EXE);
 
   MODULEENTRY32 me;
@@ -111,33 +157,34 @@ void initHooked(HMODULE hDLL) {
   *((DWORD *)(TeraBase + ADDR_ENCRYPT_FN1 + 1)) = lpEncryptAbs;
   *((BYTE *)returnAddress) = 0x90; //NOP
 
-  MessageBox(0, "HOOKED TERA.EXE", 0, 0);
-
+  OutputDebugString("[SpeedyTera] TERA.EXE Process Hooked");
 }
 
-void initAlone(HMODULE hDLL) {
+void initAlone() { //HMODULE hDLL) {
   char szDLL[MAX_PATH];
   GetModuleFileName(hDLL, szDLL, MAX_PATH);
 
   if (injectDLL(szDLL) == FALSE) {
     MessageBox(0, "[!] TERA.exe not running or not enough privileges", "SpeedyTera ERROR", MB_ICONERROR | MB_OK);
   }
-
 }
 
-int __stdcall DllMain(HMODULE hModule, DWORD ulReason, LPVOID lpReserved) {
+BOOL WINAPI DllMain(HMODULE hModule, DWORD ulReason, LPVOID lpReserved) {
   switch (ulReason) {
   case DLL_PROCESS_ATTACH: {
     char szPath[MAX_PATH];
     GetModuleFileName(GetModuleHandle(0), szPath, MAX_PATH);
     char *szApp = strrchr(szPath, '\\') + 1;
     //MessageBoxA(0, szApp, "DllMain", 0);
+    hDLL = hModule;
 
     if (_stricmp(szApp, TERA_EXE) == 0) {
-      initHooked(hModule);
+      //CreateThread(0, 0, (LPTHREAD_START_ROUTINE)initHooked, 0, 0, 0);
+      initHooked();
     }
     else {
-      initAlone(hModule);
+      //CreateThread(0, 0, (LPTHREAD_START_ROUTINE)loadPlugins, 0, 0, 0);
+      initAlone();
     }
 
     break;
@@ -145,5 +192,6 @@ int __stdcall DllMain(HMODULE hModule, DWORD ulReason, LPVOID lpReserved) {
   case DLL_PROCESS_DETACH:
     break;
   }
-  return 1;
+
+  return TRUE;
 }
