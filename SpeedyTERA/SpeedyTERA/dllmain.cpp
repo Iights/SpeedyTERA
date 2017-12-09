@@ -98,7 +98,7 @@ __declspec(naked) void encryptHook(char* buffer, size_t size) {
   __asm jmp returnAddress
 }
 
-char * PLUGIN_PATH = "C:\\Users\\Administrador\\source\\repos\\SpeedyTERA\\PluginExample\\Debug\\";
+char * PLUGIN_PATH = "..\\..\\PluginExample\\Debug\\";
 BOOL loadPlugins() { 
   WIN32_FIND_DATA fd = { sizeof(fd) };
 
