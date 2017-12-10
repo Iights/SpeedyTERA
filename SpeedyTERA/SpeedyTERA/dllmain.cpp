@@ -74,17 +74,17 @@ BOOL injectDLL(char *szDLL) {
   return TRUE;
 }
 
-typedef int(__stdcall * defOnBeforeEncrypt)(char *, size_t);
+typedef void(__cdecl * defOnBeforeEncrypt)(char *, size_t);
 std::vector<defOnBeforeEncrypt> cbOnBeforeEncrypt = {};
 
-void onBeforeEncrypt(char* buffer, size_t size) {
+void __cdecl onBeforeEncrypt(char* buffer, size_t size) {
   for (defOnBeforeEncrypt callback : cbOnBeforeEncrypt) {
     callback(buffer, size);
   }
 }
 
 DWORD returnAddress;
-__declspec(naked) void encryptHook(char* buffer, size_t size) {
+__declspec(naked) void __cdecl encryptHook(char* buffer, size_t size) {
   __asm {
     push ebp
     mov ebp, esp
@@ -98,7 +98,7 @@ __declspec(naked) void encryptHook(char* buffer, size_t size) {
   __asm jmp returnAddress
 }
 
-char * PLUGIN_PATH = "..\\..\\PluginExample\\Debug\\";
+char * PLUGIN_PATH = "C:\\Users\\Administrador\\source\\repos\\SpeedyTERA\\PluginExample\\Debug\\";
 BOOL loadPlugins() { 
   WIN32_FIND_DATA fd = { sizeof(fd) };
 
