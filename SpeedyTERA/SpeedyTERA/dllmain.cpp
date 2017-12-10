@@ -74,28 +74,92 @@ BOOL injectDLL(char *szDLL) {
   return TRUE;
 }
 
-typedef void(__cdecl * defOnBeforeEncrypt)(char *, size_t);
-std::vector<defOnBeforeEncrypt> cbOnBeforeEncrypt = {};
+typedef void(__cdecl * defHookCallback)(char *, size_t);
+std::vector<defHookCallback> cbOnBeforeEncrypt = {};
+std::vector<defHookCallback> cbOnAfterEncrypt = {};
+std::vector<defHookCallback> cbOnBeforeDecrypt = {};
+std::vector<defHookCallback> cbOnAfterDecrypt = {};
 
-void __cdecl onBeforeEncrypt(char* buffer, size_t size) {
-  for (defOnBeforeEncrypt callback : cbOnBeforeEncrypt) {
-    callback(buffer, size);
+char * encBuffer;
+size_t encSize;
+char * decBuffer;
+size_t decSize;
+
+void onBeforeEncrypt() {
+  for (defHookCallback callback : cbOnBeforeEncrypt) {
+    callback(encBuffer, encSize);
+  }
+}
+void onAfterEncrypt() {
+  for (defHookCallback callback : cbOnAfterEncrypt) {
+    callback(encBuffer, encSize);
+  }
+}
+void onBeforeDecrypt() {
+  for (defHookCallback callback : cbOnBeforeDecrypt) {
+    callback(decBuffer, decSize);
+  }
+}
+void onAfterDecrypt() {
+  for (defHookCallback callback : cbOnAfterDecrypt) {
+    callback(decBuffer, decSize);
   }
 }
 
-DWORD returnAddress;
-__declspec(naked) void __cdecl encryptHook(char* buffer, size_t size) {
+DWORD retnEncAddr, realEncrypt;
+void __declspec(naked) encryptHook() {
   __asm {
-    push ebp
-    mov ebp, esp
-    sub esp, 0x28
+    push eax
+    mov eax, dword ptr ss : [esp + 0x08]
+    mov encBuffer, eax
+    mov eax, dword ptr ss : [esp + 0x0c]
+    mov[encSize], eax
+    mov eax, dword ptr ss : [esp + 0x04]
+    mov[retnEncAddr], eax
+    pop eax
+
+    pushad
+    call onBeforeEncrypt
+    popad
+
+    add esp, 4
+    call[realEncrypt]
+
+    pushad
+    call onAfterEncrypt
+    popad
+
+    push retnEncAddr
+    retn
   }
-  __asm pushad
+}
 
-  onBeforeEncrypt(buffer, size);
+DWORD retnDecAddr, realDecrypt;
+void __declspec(naked) decryptHook() {
+  __asm {
+    push eax
+    mov eax, dword ptr ss : [esp + 0x08]
+    mov decBuffer, eax
+    mov eax, dword ptr ss : [esp + 0x0c]
+    mov[decSize], eax
+    mov eax, dword ptr ss : [esp + 0x04]
+    mov[retnDecAddr], eax
+    pop eax
 
-  __asm popad
-  __asm jmp returnAddress
+    pushad
+    call onBeforeDecrypt
+    popad
+
+    add esp, 4
+    call[realDecrypt]
+
+    pushad
+    call onAfterDecrypt
+    popad
+
+    push retnDecAddr
+    retn
+  }
 }
 
 char * PLUGIN_PATH = "C:\\Users\\Administrador\\source\\repos\\SpeedyTERA\\PluginExample\\Debug\\";
@@ -117,10 +181,16 @@ BOOL loadPlugins() {
       HMODULE hLib = LoadLibrary(szDLL);
       if (hLib == NULL) continue;
 
-      FARPROC lpHook = GetProcAddress(hLib, "onBeforeEncrypt");
-      if (lpHook == NULL) continue;
+      FARPROC lpHook;
+      lpHook = GetProcAddress(hLib, "onBeforeEncrypt");
+      if (lpHook != NULL) cbOnBeforeEncrypt.push_back((defHookCallback)lpHook);
+      lpHook = GetProcAddress(hLib, "onAfterEncrypt");
+      if (lpHook != NULL) cbOnAfterEncrypt.push_back((defHookCallback)lpHook);
 
-      cbOnBeforeEncrypt.push_back((defOnBeforeEncrypt)lpHook);
+      lpHook = GetProcAddress(hLib, "onBeforeDecrypt");
+      if (lpHook != NULL) cbOnBeforeDecrypt.push_back((defHookCallback)lpHook);
+      lpHook = GetProcAddress(hLib, "onAfterDecrypt");
+      if (lpHook != NULL) cbOnAfterDecrypt.push_back((defHookCallback)lpHook);
 
       char buf[MAX_PATH] = "[SpeedyTera] Plugin Loaded: ";
       strcat_s(buf, szDLL);
@@ -147,15 +217,32 @@ void initHooked() { //HMODULE hDLL) {
   getModule(pID, TERA_EXE, me);
   DWORD TeraBase = (DWORD)me.modBaseAddr;
 
-  returnAddress = (TeraBase + ADDR_ENCRYPT_FN1 + 5);
+  realEncrypt = TeraBase + ADDR_ENCRYPT_FN1;
+  realDecrypt = TeraBase + ADDR_ENCRYPT_FN2;
 
-  DWORD lpEncryptJmp = (DWORD)&encryptHook;
-  DWORD lpEncryptRel = *((DWORD *)(lpEncryptJmp + 1));
-  DWORD lpEncryptAbs = lpEncryptJmp + lpEncryptRel + 5 - returnAddress;
+  //-- enc
 
-  *((BYTE *)(TeraBase + ADDR_ENCRYPT_FN1)) = 0xE9; //JMP
-  *((DWORD *)(TeraBase + ADDR_ENCRYPT_FN1 + 1)) = lpEncryptAbs;
-  *((BYTE *)returnAddress) = 0x90; //NOP
+  DWORD lpEncJmp = (DWORD)&encryptHook;
+  DWORD lpEncRel = *((DWORD *)(lpEncJmp + 1));
+  DWORD lpEncAbs = lpEncJmp + lpEncRel + 5;
+
+  DWORD lpAbsEnc1 = lpEncAbs - (TeraBase + ADDR_CALL_ENCRYPT_FN1_1) - 5;
+  DWORD lpAbsEnc2 = lpEncAbs - (TeraBase + ADDR_CALL_ENCRYPT_FN1_2) - 5;
+
+  *((DWORD *)(TeraBase + ADDR_CALL_ENCRYPT_FN1_1 + 1)) = lpAbsEnc1;
+  *((DWORD *)(TeraBase + ADDR_CALL_ENCRYPT_FN1_2 + 1)) = lpAbsEnc2;
+
+  //-- dec
+
+  DWORD lpDecJmp = (DWORD)&decryptHook;
+  DWORD lpDecRel = *((DWORD *)(lpDecJmp + 1));
+  DWORD lpDecAbs = lpDecJmp + lpDecRel + 5;
+
+  DWORD lpAbsDec1 = lpDecAbs - (TeraBase + ADDR_CALL_ENCRYPT_FN2_1) - 5;
+  DWORD lpAbsDec2 = lpDecAbs - (TeraBase + ADDR_CALL_ENCRYPT_FN2_2) - 5;
+
+  *((DWORD *)(TeraBase + ADDR_CALL_ENCRYPT_FN2_1 + 1)) = lpAbsDec1;
+  *((DWORD *)(TeraBase + ADDR_CALL_ENCRYPT_FN2_2 + 1)) = lpAbsDec2;
 
   OutputDebugString("[SpeedyTera] TERA.EXE Process Hooked");
 }
@@ -175,7 +262,7 @@ BOOL WINAPI DllMain(HMODULE hModule, DWORD ulReason, LPVOID lpReserved) {
     char szPath[MAX_PATH];
     GetModuleFileName(GetModuleHandle(0), szPath, MAX_PATH);
     char *szApp = strrchr(szPath, '\\') + 1;
-    //MessageBoxA(0, szApp, "DllMain", 0);
+    //MessageBox(0, szApp, "DllMain", 0);
     hDLL = hModule;
 
     if (_stricmp(szApp, TERA_EXE) == 0) {
@@ -183,7 +270,6 @@ BOOL WINAPI DllMain(HMODULE hModule, DWORD ulReason, LPVOID lpReserved) {
       initHooked();
     }
     else {
-      //CreateThread(0, 0, (LPTHREAD_START_ROUTINE)loadPlugins, 0, 0, 0);
       initAlone();
     }
 
