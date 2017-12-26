@@ -1,3 +1,8 @@
+#include <windows.h>
+#include <tlhelp32.h>
+#include <cstdio>
+#include <vector>
+
 /*
 TERA.exe+15626B0 - 55                    - push ebp
 TERA.exe+15626B1 - 8B EC                 - mov ebp,esp
@@ -66,4 +71,4 @@ speedytera.dll+116FB - 3B F4                 - cmp esi,esp
 #define ADDR_CALL_ENCRYPT_FN2_1 (DWORD)0x01561382
 #define ADDR_CALL_ENCRYPT_FN2_2 (DWORD)0x01561BD1
 
-#define ADDR_NET_BUFFER (DWORD)0x022CCE38
+#define ADDR_NET_BUFFER (DWORD)0x022D3E38

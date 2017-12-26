@@ -143,10 +143,22 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="console.cpp" />
     <ClCompile Include="dllmain.cpp" />
+    <ClCompile Include="hook.cpp" />
+    <ClCompile Include="network.cpp" />
+    <ClCompile Include="plugin.cpp" />
+    <ClCompile Include="process.cpp" />
+    <ClCompile Include="themida.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="console.h" />
     <ClInclude Include="dllmain.h" />
+    <ClInclude Include="network.h" />
+    <ClInclude Include="plugin.h" />
+    <ClInclude Include="process.h" />
+    <ClInclude Include="themida.h" />
+    <ClInclude Include="hook.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
