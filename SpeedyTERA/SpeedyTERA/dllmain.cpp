@@ -8,9 +8,13 @@
 
 char *TERA_EXE = "TERA.exe";
 
+HMODULE hDLL;
+LPVOID teraBase;
+DWORD teraSize;
+
 extern "C" __declspec (dllexport) void __cdecl dummy(HWND hWnd, HINSTANCE hInst, LPTSTR lpCmdLine, int nCmdShow) { }
 
-void initAlone(HMODULE hDLL) {
+void initAlone() {
   char szDLL[MAX_PATH];
   GetModuleFileName(hDLL, szDLL, MAX_PATH);
 
@@ -19,39 +23,51 @@ void initAlone(HMODULE hDLL) {
   }
 }
 
-void initHooked(HMODULE hDLL) {
-  DWORD pID = getPID(TERA_EXE); 
-
-  MODULEENTRY32 me;
-  getModule(pID, TERA_EXE, me);
-
-  LPVOID TeraBase = me.modBaseAddr;
-  DWORD TeraSize = me.modBaseSize;
+void initHooked() {
+  MODULEENTRY32 me = { 0 };
+  getModule(GetCurrentProcessId(), TERA_EXE, me);
+  teraBase = me.modBaseAddr;
+  teraSize = me.modBaseSize;
 
   spawnConsole();
-  printf("[+] SpeedyTera v1.0\n");
+  printf("[+] SpeedyTera DEV\n");
 
-  patchThemida(TeraBase, TeraSize);
-  patchCrypto(TeraBase, TeraSize);
-
+  patchThemida();
+  patchCrypto();
   loadPlugins();
   
+}
+
+void exitLibrary() {
+  char szLib[MAX_PATH] = { 0 };
+  GetModuleFileName(hDLL, szLib, sizeof(szLib));
+  HMODULE hRef = LoadLibrary(szLib);
+  FreeLibraryAndExitThread(hRef, 0);
+}
+
+void unloadAll() {
+  unloadPlugins();
+  restoreCrypto();
+  restoreThemida();
+  exitConsole();
+  exitLibrary(); //todo: fix
 }
 
 BOOL WINAPI DllMain(HMODULE hModule, DWORD ulReason, LPVOID lpReserved) {
   switch (ulReason) {
   case DLL_PROCESS_ATTACH: {
     DisableThreadLibraryCalls(hModule);
+    hDLL = hModule;
 
-    char szPath[MAX_PATH];
+    char szPath[MAX_PATH] = { 0 };
     GetModuleFileName(GetModuleHandle(0), szPath, MAX_PATH);
     char *szApp = strrchr(szPath, '\\') + 1;
 
     if (_stricmp(szApp, TERA_EXE) == 0) {
-      initHooked(hModule);
+      initHooked();
     }
     else {
-      initAlone(hModule);
+      initAlone();
     }
 
     break;

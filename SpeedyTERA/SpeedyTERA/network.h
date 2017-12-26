@@ -6,4 +6,5 @@ extern std::vector<defHookCallback> cbOnAfterEncrypt;
 extern std::vector<defHookCallback> cbOnBeforeDecrypt;
 extern std::vector<defHookCallback> cbOnAfterDecrypt;
 
-void patchCrypto(void *base, size_t size);
+void patchCrypto();
+void restoreCrypto();

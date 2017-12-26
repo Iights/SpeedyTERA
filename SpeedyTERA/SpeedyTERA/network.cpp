@@ -2,6 +2,7 @@
 #include "network.h"
 
 #include "hook.h"
+#include "themida.h"
 
 //enc/dec functions (2 with same pattern)
 BYTE *sigCryptoData = (BYTE *)"\x55\x8B\xEC\x83\xEC\x28\x8B\x41\x04\x8B\x55\x0C\x53\x56\x57"; 
@@ -28,7 +29,7 @@ std::vector<defHookCallback> cbOnAfterEncrypt = {};
 std::vector<defHookCallback> cbOnBeforeDecrypt = {};
 std::vector<defHookCallback> cbOnAfterDecrypt = {};
 
-char * encBuffer;
+char *encBuffer;
 size_t encSize;
 void onBeforeEncrypt() {
   for (defHookCallback callback : cbOnBeforeEncrypt) {
@@ -110,39 +111,48 @@ void __declspec(naked) decryptHook() {
   }
 }
 
-void patchCrypto(void *base, size_t size) {
+DWORD encPatch1, encPatch2;
+DWORD decPatch1, decPatch2;
+void patchCrypto() {
   //get crypto functions addresses
-  realEncrypt = dwFindPattern((DWORD)base, size, sigCryptoData, sigCryptoMask);
+  realEncrypt = dwFindPattern((DWORD)teraBase, teraSize, sigCryptoData, sigCryptoMask);
 
   DWORD searchAddr = realEncrypt + sizeof(sigCryptoData);
-  SIZE_T searchSize = size - (searchAddr - (DWORD)base);
+  SIZE_T searchSize = teraSize - (searchAddr - (DWORD)teraBase);
   realDecrypt = dwFindPattern(searchAddr, searchSize, sigCryptoData, sigCryptoMask);
 
   //patch encrypt calls
-  DWORD encPatch1 = dwFindPattern((DWORD)base, size, sigEncData1, sigEncMask1);
+  encPatch1 = dwFindPattern((DWORD)teraBase, teraSize, sigEncData1, sigEncMask1);
   encPatch1 += sigEncOffset1;
   *((DWORD *)(encPatch1 + 1)) = absAddr((DWORD)&encryptHook, encPatch1);
 
-  DWORD encPatch2 = dwFindPattern((DWORD)base, size, sigEncData2, sigEncMask2);
+  encPatch2 = dwFindPattern((DWORD)teraBase, teraSize, sigEncData2, sigEncMask2);
   encPatch2 += sigEncOffset2;
   *((DWORD *)(encPatch2 + 1)) = absAddr((DWORD)&encryptHook, encPatch2);
 
   //patch decrypt calls
-  DWORD decPatch1 = dwFindPattern((DWORD)base, size, sigDecData1, sigDecMask1);
+  decPatch1 = dwFindPattern((DWORD)teraBase, teraSize, sigDecData1, sigDecMask1);
   decPatch1 += sigDecOffset1;
   *((DWORD *)(decPatch1 + 1)) = absAddr((DWORD)&decryptHook, decPatch1);
 
-  DWORD decPatch2 = dwFindPattern((DWORD)base, size, sigDecData2, sigDecMask2);
+  decPatch2 = dwFindPattern((DWORD)teraBase, teraSize, sigDecData2, sigDecMask2);
   decPatch2 += sigDecOffset2;
   *((DWORD *)(decPatch2 + 1)) = absAddr((DWORD)&decryptHook, decPatch2);
 
   //debug
-  printf("[Debug] encrypt function: 0x%04X\n", realEncrypt);
+  /*printf("[Debug] encrypt function: 0x%04X\n", realEncrypt);
   printf("[Debug] encrypt call1: 0x%04X\n", encPatch1);
   printf("[Debug] encrypt call2: 0x%04X\n", encPatch2);
 
   printf("[Debug] decrypt function: 0x%04X\n", realDecrypt);
   printf("[Debug] decrypt call1: 0x%04X\n", decPatch1);
-  printf("[Debug] decrypt call2: 0x%04X\n", decPatch2);
+  printf("[Debug] decrypt call2: 0x%04X\n", decPatch2);*/
 
+}
+
+void restoreCrypto() {
+  memcpy((LPVOID)encPatch1, (LPVOID)(encPatch1 + fakeOffset), sizeof(DWORD));
+  memcpy((LPVOID)encPatch2, (LPVOID)(encPatch2 + fakeOffset), sizeof(DWORD));
+  memcpy((LPVOID)decPatch1, (LPVOID)(decPatch1 + fakeOffset), sizeof(DWORD));
+  memcpy((LPVOID)decPatch2, (LPVOID)(decPatch2 + fakeOffset), sizeof(DWORD));
 }

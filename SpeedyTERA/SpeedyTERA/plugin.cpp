@@ -3,25 +3,32 @@
 
 #include "network.h"
 
-char * PLUGIN_PATH = "C:\\Users\\Administrador\\source\\repos\\SpeedyTERA\\PluginExample\\Debug\\";
+std::vector<HMODULE> hPlugins = {};
 
 BOOL loadPlugins() {
   WIN32_FIND_DATA fd = { sizeof(fd) };
 
+  char szPath[MAX_PATH] = { 0 };
+  GetModuleFileNameA(hDLL, szPath, sizeof(szPath));
+  char *pNull = strrchr(szPath, '\\') + 1; 
+  pNull[0] = '\0';
+  strcat_s(szPath, "..\\..\\PluginExample\\Debug\\");
+
   HANDLE hFind;
   char szPluginSearch[MAX_PATH] = { 0 };
-  strcpy_s(szPluginSearch, PLUGIN_PATH);
+  strcpy_s(szPluginSearch, szPath);
   strcat_s(szPluginSearch, "*.dll");
 
   if (hFind = FindFirstFile(szPluginSearch, &fd)) {
-
     do {
       char szDLL[MAX_PATH] = { 0 };
-      strcpy_s(szDLL, PLUGIN_PATH);
+      strcpy_s(szDLL, szPath);
       strcat_s(szDLL, fd.cFileName);
+      printf("[Plugin] * %s\n", fd.cFileName);
 
       HMODULE hLib = LoadLibrary(szDLL);
       if (hLib == NULL) continue;
+      hPlugins.push_back(hLib);
 
       FARPROC lpHook;
       lpHook = GetProcAddress(hLib, "onBeforeEncrypt");
@@ -34,8 +41,6 @@ BOOL loadPlugins() {
       lpHook = GetProcAddress(hLib, "onAfterDecrypt");
       if (lpHook != NULL) cbOnAfterDecrypt.push_back((defHookCallback)lpHook);
 
-      printf("[Plugin] Loaded: %s\n", szDLL);
-
     } while (FindNextFile(hFind, &fd));
 
     FindClose(hFind);
@@ -43,4 +48,11 @@ BOOL loadPlugins() {
   }
 
   return FALSE;
+}
+
+BOOL unloadPlugins() {
+  for (HMODULE hMod : hPlugins) {
+    FreeLibrary(hMod);
+  }
+  return TRUE;
 }

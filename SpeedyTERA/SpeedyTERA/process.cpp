@@ -1,6 +1,8 @@
 #include "dllmain.h"
 #include "process.h"
 
+#include "dllmain.h"
+
 DWORD getPID(char *szName) {
   DWORD pID = 0;
   HANDLE hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
