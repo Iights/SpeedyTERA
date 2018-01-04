@@ -60,16 +60,9 @@ void initHooked() {
 
   patchThemida();
   patchCrypto();
-  //loadPlugins();
+  loadPlugins();
 
   handleConsole();
-}
-
-void exitLibrary() {
-  char szLib[MAX_PATH] = { 0 };
-  GetModuleFileName(hDLL, szLib, sizeof(szLib));
-  HMODULE hRef = LoadLibrary(szLib);
-  FreeLibraryAndExitThread(hRef, 0);
 }
 
 void unloadAll() {
@@ -77,7 +70,7 @@ void unloadAll() {
   restoreCrypto();
   restoreThemida();
   exitConsole();
-  exitLibrary(); //todo: fix
+  FreeLibraryAndExitThread(hDLL, 0);
 }
 
 BOOL WINAPI DllMain(HMODULE hModule, DWORD ulReason, LPVOID lpReserved) {
