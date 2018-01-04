@@ -89,6 +89,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;SPEEDYTERA_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <DisableSpecificWarnings>4244</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -145,6 +146,7 @@
   <ItemGroup>
     <ClCompile Include="console.cpp" />
     <ClCompile Include="dllmain.cpp" />
+    <ClCompile Include="engine.cpp" />
     <ClCompile Include="hook.cpp" />
     <ClCompile Include="network.cpp" />
     <ClCompile Include="plugin.cpp" />
@@ -154,9 +156,43 @@
   <ItemGroup>
     <ClInclude Include="console.h" />
     <ClInclude Include="dllmain.h" />
+    <ClInclude Include="engine.h" />
     <ClInclude Include="network.h" />
     <ClInclude Include="plugin.h" />
     <ClInclude Include="process.h" />
+    <ClInclude Include="sdk.h" />
+    <ClInclude Include="SDK\ALAudio_classes.h" />
+    <ClInclude Include="SDK\ALAudio_functions.h" />
+    <ClInclude Include="SDK\ALAudio_f_structs.h" />
+    <ClInclude Include="SDK\ALAudio_structs.h" />
+    <ClInclude Include="SDK\Core_classes.h" />
+    <ClInclude Include="SDK\Core_functions.h" />
+    <ClInclude Include="SDK\Core_f_structs.h" />
+    <ClInclude Include="SDK\Core_structs.h" />
+    <ClInclude Include="SDK\Engine_classes.h" />
+    <ClInclude Include="SDK\Engine_functions.h" />
+    <ClInclude Include="SDK\Engine_f_structs.h" />
+    <ClInclude Include="SDK\Engine_structs.h" />
+    <ClInclude Include="SDK\GameFramework_classes.h" />
+    <ClInclude Include="SDK\GameFramework_functions.h" />
+    <ClInclude Include="SDK\GameFramework_f_structs.h" />
+    <ClInclude Include="SDK\GameFramework_structs.h" />
+    <ClInclude Include="SDK\GFxUI_classes.h" />
+    <ClInclude Include="SDK\GFxUI_functions.h" />
+    <ClInclude Include="SDK\GFxUI_f_structs.h" />
+    <ClInclude Include="SDK\GFxUI_structs.h" />
+    <ClInclude Include="SDK\S1Game_classes.h" />
+    <ClInclude Include="SDK\S1Game_functions.h" />
+    <ClInclude Include="SDK\S1Game_f_structs.h" />
+    <ClInclude Include="SDK\S1Game_structs.h" />
+    <ClInclude Include="SDK\UnrealScriptTest_classes.h" />
+    <ClInclude Include="SDK\UnrealScriptTest_functions.h" />
+    <ClInclude Include="SDK\UnrealScriptTest_f_structs.h" />
+    <ClInclude Include="SDK\UnrealScriptTest_structs.h" />
+    <ClInclude Include="SDK\WinDrv_classes.h" />
+    <ClInclude Include="SDK\WinDrv_functions.h" />
+    <ClInclude Include="SDK\WinDrv_f_structs.h" />
+    <ClInclude Include="SDK\WinDrv_structs.h" />
     <ClInclude Include="themida.h" />
     <ClInclude Include="hook.h" />
   </ItemGroup>

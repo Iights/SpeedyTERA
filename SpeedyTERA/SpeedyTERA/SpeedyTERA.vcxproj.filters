@@ -13,6 +13,9 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Archivos de origen\SDK">
+      <UniqueIdentifier>{441e2996-f5c1-40b8-81bd-afdfc81197e0}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
@@ -34,6 +37,9 @@
       <Filter>Archivos de origen</Filter>
     </ClCompile>
     <ClCompile Include="console.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="engine.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
   </ItemGroup>
@@ -58,6 +64,108 @@
     </ClInclude>
     <ClInclude Include="console.h">
       <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="SDK\ALAudio_classes.h">
+      <Filter>Archivos de origen\SDK</Filter>
+    </ClInclude>
+    <ClInclude Include="SDK\ALAudio_functions.h">
+      <Filter>Archivos de origen\SDK</Filter>
+    </ClInclude>
+    <ClInclude Include="SDK\ALAudio_f_structs.h">
+      <Filter>Archivos de origen\SDK</Filter>
+    </ClInclude>
+    <ClInclude Include="SDK\ALAudio_structs.h">
+      <Filter>Archivos de origen\SDK</Filter>
+    </ClInclude>
+    <ClInclude Include="SDK\Core_classes.h">
+      <Filter>Archivos de origen\SDK</Filter>
+    </ClInclude>
+    <ClInclude Include="SDK\Core_functions.h">
+      <Filter>Archivos de origen\SDK</Filter>
+    </ClInclude>
+    <ClInclude Include="SDK\Core_f_structs.h">
+      <Filter>Archivos de origen\SDK</Filter>
+    </ClInclude>
+    <ClInclude Include="SDK\Core_structs.h">
+      <Filter>Archivos de origen\SDK</Filter>
+    </ClInclude>
+    <ClInclude Include="SDK\Engine_classes.h">
+      <Filter>Archivos de origen\SDK</Filter>
+    </ClInclude>
+    <ClInclude Include="SDK\Engine_functions.h">
+      <Filter>Archivos de origen\SDK</Filter>
+    </ClInclude>
+    <ClInclude Include="SDK\Engine_f_structs.h">
+      <Filter>Archivos de origen\SDK</Filter>
+    </ClInclude>
+    <ClInclude Include="SDK\Engine_structs.h">
+      <Filter>Archivos de origen\SDK</Filter>
+    </ClInclude>
+    <ClInclude Include="SDK\GameFramework_classes.h">
+      <Filter>Archivos de origen\SDK</Filter>
+    </ClInclude>
+    <ClInclude Include="SDK\GameFramework_functions.h">
+      <Filter>Archivos de origen\SDK</Filter>
+    </ClInclude>
+    <ClInclude Include="SDK\GameFramework_f_structs.h">
+      <Filter>Archivos de origen\SDK</Filter>
+    </ClInclude>
+    <ClInclude Include="SDK\GameFramework_structs.h">
+      <Filter>Archivos de origen\SDK</Filter>
+    </ClInclude>
+    <ClInclude Include="SDK\GFxUI_classes.h">
+      <Filter>Archivos de origen\SDK</Filter>
+    </ClInclude>
+    <ClInclude Include="SDK\GFxUI_functions.h">
+      <Filter>Archivos de origen\SDK</Filter>
+    </ClInclude>
+    <ClInclude Include="SDK\GFxUI_f_structs.h">
+      <Filter>Archivos de origen\SDK</Filter>
+    </ClInclude>
+    <ClInclude Include="SDK\GFxUI_structs.h">
+      <Filter>Archivos de origen\SDK</Filter>
+    </ClInclude>
+    <ClInclude Include="SDK\S1Game_classes.h">
+      <Filter>Archivos de origen\SDK</Filter>
+    </ClInclude>
+    <ClInclude Include="SDK\S1Game_functions.h">
+      <Filter>Archivos de origen\SDK</Filter>
+    </ClInclude>
+    <ClInclude Include="SDK\S1Game_f_structs.h">
+      <Filter>Archivos de origen\SDK</Filter>
+    </ClInclude>
+    <ClInclude Include="SDK\S1Game_structs.h">
+      <Filter>Archivos de origen\SDK</Filter>
+    </ClInclude>
+    <ClInclude Include="SDK\UnrealScriptTest_classes.h">
+      <Filter>Archivos de origen\SDK</Filter>
+    </ClInclude>
+    <ClInclude Include="SDK\UnrealScriptTest_functions.h">
+      <Filter>Archivos de origen\SDK</Filter>
+    </ClInclude>
+    <ClInclude Include="SDK\UnrealScriptTest_f_structs.h">
+      <Filter>Archivos de origen\SDK</Filter>
+    </ClInclude>
+    <ClInclude Include="SDK\UnrealScriptTest_structs.h">
+      <Filter>Archivos de origen\SDK</Filter>
+    </ClInclude>
+    <ClInclude Include="SDK\WinDrv_classes.h">
+      <Filter>Archivos de origen\SDK</Filter>
+    </ClInclude>
+    <ClInclude Include="engine.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="sdk.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="SDK\WinDrv_f_structs.h">
+      <Filter>Archivos de origen\SDK</Filter>
+    </ClInclude>
+    <ClInclude Include="SDK\WinDrv_functions.h">
+      <Filter>Archivos de origen\SDK</Filter>
+    </ClInclude>
+    <ClInclude Include="SDK\WinDrv_structs.h">
+      <Filter>Archivos de origen\SDK</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -1,10 +1,12 @@
 #include "dllmain.h"
 
+#include "hook.h"
 #include "console.h"
 #include "process.h"
 #include "themida.h"
 #include "network.h"
 #include "plugin.h"
+#include "engine.h"
 
 char *TERA_EXE = "TERA.exe";
 
@@ -23,6 +25,30 @@ void initAlone() {
   }
 }
 
+void handleConsole() {
+  //printf("[Debug] handleConsole = 0x%04X\n", (DWORD)&handleConsole);
+  char buf[MAX_PATH];
+  while (true) {
+    printf("> ");
+    fflush(stdout);
+    if (fgets(buf, sizeof(buf), stdin) != NULL) {
+      buf[strcspn(buf, "\r\n")] = '\0';
+      if (!strlen(buf)) continue;
+      if ((_stricmp(buf, "printdebug") == 0)) {
+        //printf("GObjects: 0x%X\n", GObjects);
+        //printf("GNames:   0x%X\n", GNames);
+        InitCore();
+      }
+      else if ((_stricmp(buf, "quit") == 0) || (_stricmp(buf, "exit") == 0)) {
+        unloadAll();
+      }
+      else {
+        printf("Unknown command '%s'.\n", buf);
+      }
+    }
+  }
+}
+
 void initHooked() {
   MODULEENTRY32 me = { 0 };
   getModule(GetCurrentProcessId(), TERA_EXE, me);
@@ -34,8 +60,9 @@ void initHooked() {
 
   patchThemida();
   patchCrypto();
-  loadPlugins();
-  
+  //loadPlugins();
+
+  handleConsole();
 }
 
 void exitLibrary() {
@@ -64,7 +91,7 @@ BOOL WINAPI DllMain(HMODULE hModule, DWORD ulReason, LPVOID lpReserved) {
     char *szApp = strrchr(szPath, '\\') + 1;
 
     if (_stricmp(szApp, TERA_EXE) == 0) {
-      initHooked();
+      CreateThread(NULL, NULL, (LPTHREAD_START_ROUTINE)initHooked, NULL, NULL, NULL);
     }
     else {
       initAlone();

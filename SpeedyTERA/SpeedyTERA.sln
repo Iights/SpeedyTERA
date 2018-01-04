@@ -8,6 +8,9 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{E363E4D5-327E-43E0-AF49-7674ACCF4822}"
 	ProjectSection(SolutionItems) = preProject
 		init.bat = init.bat
+		NameDump.txt = NameDump.txt
+		ObjectDump.txt = ObjectDump.txt
+		SourceFiles.txt = SourceFiles.txt
 	EndProjectSection
 EndProject
 Global
